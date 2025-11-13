@@ -84,6 +84,8 @@ type UIMessageType = {
   }[];
 };
 
+let test="test"
+
 const N8N_CHAT_API = process.env.NEXT_PUBLIC_N8N_CHAT_API
 
 // --- [MOCK DATA FOR SUGGESTIONS] ---
