@@ -68,10 +68,10 @@ type UIMessageType = {
   sources?: { href: string; title: string }[];
   versions: {
     id: string;
-    content: string;
+    content: any;
   }[];
   reasoning?: {
-    content: any;
+    content: string;
     duration: number;
   };
   tools?: {
