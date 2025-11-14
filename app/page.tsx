@@ -1,3 +1,50 @@
+// "use client";
+
+// // --- [Imports: All your ai-elements components] ---
+// import {
+//   MessageBranch,
+//   MessageBranchContent,
+//   MessageBranchNext,
+//   MessageBranchPrevious,
+//   MessageBranchSelector,
+// } from "./components/ai-elements/message"; // Corrected path
+// import {
+//   Conversation,
+//   ConversationContent,
+//   ConversationScrollButton,
+// } from "./components/ai-elements/conversation"; // Corrected path
+// import { Message, MessageContent } from "./components/ai-elements/message"; // Corrected path
+// import {
+//   PromptInput,
+//   PromptInputActionAddAttachments,
+//   PromptInputActionMenu,
+//   PromptInputActionMenuContent,
+//   PromptInputActionMenuTrigger,
+//   PromptInputAttachment,
+//   PromptInputAttachments,
+//   PromptInputBody,
+//   PromptInputButton,
+//   PromptInputFooter,
+//   PromptInputHeader,
+//   type PromptInputMessage,
+//   PromptInputSubmit,
+//   PromptInputTextarea,
+//   PromptInputTools,
+// } from "./components/ai-elements/prompt-input"; // Corrected path
+// import {
+//   Reasoning,
+//   ReasoningContent,
+//   ReasoningTrigger,
+// } from "./components/ai-elements/reasoning"; // Corrected path
+// import { MessageResponse } from "./components/ai-elements/message"; // Corrected path
+// import {
+//   Source,
+//   Sources,
+//   SourcesContent,
+//   SourcesTrigger,
+// } from "./components/ai-elements/sources"; // Corrected path
+// import { Suggestion, Suggestions } from "./components/ai-elements/suggestion"; // Corrected path
+
 "use client";
 
 // --- [Imports: All your ai-elements components] ---
@@ -47,7 +94,7 @@ import {
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 
 // --- [Imports: Real libraries] ---
-import type { ToolUIPart } from "ai";
+import type { ToolUIPart, FileUIPart } from "ai"; // Added FileUIPart
 import { nanoid } from "nanoid";
 import { useState, FormEvent, useCallback } from "react";
 import { toast } from "sonner";
@@ -84,7 +131,7 @@ type UIMessageType = {
   }[];
 };
 
-const N8N_CHAT_API = process.env.NEXT_PUBLIC_N8N_CHAT_API
+const N8N_CHAT_API = process.env.NEXT_PUBLIC_N8N_CHAT_API ? process.env.NEXT_PUBLIC_N8N_CHAT_API : 'st' ;
 
 // --- [MOCK DATA FOR SUGGESTIONS] ---
 const suggestions = [
@@ -96,7 +143,9 @@ const suggestions = [
 
 // --- [HELPER FUNCTIONS to translate data] ---
 
-const convertUiMessagesToN8nMessages = (uiMessages: UIMessageType[]): N8nMessage[] => {
+const convertUiMessagesToN8nMessages = (
+  uiMessages: UIMessageType[],
+): N8nMessage[] => {
   return uiMessages.map((msg) => ({
     id: msg.key,
     role: msg.from,
@@ -104,7 +153,9 @@ const convertUiMessagesToN8nMessages = (uiMessages: UIMessageType[]): N8nMessage
   }));
 };
 
-const convertN8nMessagesToUiMessages = (n8nMessages: N8nMessage[]): UIMessageType[] => {
+const convertN8nMessagesToUiMessages = (
+  n8nMessages: N8nMessage[],
+): UIMessageType[] => {
   return n8nMessages.map((msg) => ({
     key: msg.id,
     from: msg.role,
@@ -130,234 +181,157 @@ const Example = () => {
   const [status, setStatus] = useState<
     "submitted" | "streaming" | "ready" | "error"
   >("ready");
-  
+
   const [messages, setMessages] = useState<UIMessageType[]>([]);
-  
-  // const handleSubmit = useCallback(async (message: PromptInputMessage) => {
-  //   const hasText = Boolean(message.text);
-  //   const hasAttachments = Boolean(message.files?.length);
 
-  //   if (!(hasText || hasAttachments) || status !== 'ready') {
-  //     return;
-  //   }
+  const handleSubmit = useCallback(
+    async (message: PromptInputMessage) => {
+      // --- Type-safe checks for message properties ---
+      if (!message) {
+        return;
+      }
+      const hasText =
+        "text" in message &&
+        typeof message.text === "string" &&
+        message.text.length > 0;
+      const hasAttachments =
+        "files" in message &&
+        Array.isArray(message.files) &&
+        message.files.length > 0;
 
-  //   if (message.files?.length) {
-  //     toast.success("Files attached", {
-  //       description: `${message.files.length} file(s) attached to message`,
-  //     });
-  //   }
-
-  //   // 1. Create the new user message
-  //   const newUserMessage: UIMessageType = {
-  //     key: nanoid(),
-  //     from: "user",
-  //     versions: [
-  //       {
-  //         id: nanoid(),
-  //         content: message.text || "Sent with attachments",
-  //       },
-  //     ],
-  //   };
-
-  //   // 2. Create the message list to send to n8n
-  //   const n8nMessageList = [
-  //     ...convertUiMessagesToN8nMessages(messages),
-  //     {
-  //       id: newUserMessage.key,
-  //       role: "user",
-  //       content: newUserMessage.versions[0].content,
-  //     },
-  //   ];
-
-  //   // --- [NEW] --- 3. Create a fake "loading" message
-  //   const loadingMessage: UIMessageType = {
-  //     key: LOADING_INDICATOR_KEY,
-  //     from: "assistant",
-  //     versions: [{ id: "loading", content: "..." }], // Content doesn't matter
-  //   };
-
-  //   // 4. Optimistically update the UI with *both* messages
-  //   setMessages((prev) => [...prev, newUserMessage, loadingMessage]);
-  //   setText("");
-  //   setStatus("submitted"); // Use 'submitted' to disable button
-
-  //   try {
-  //     // 5. Call the n8n Webhook
-  //     const response = await fetch(N8N_CHAT_API, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         messages: n8nMessageList,
-  //       }),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error(`Network response was not ok: ${response.statusText}`);
-  //     }
-
-  //     // 6. Get the *simple* JSON response from n8n's 'Set' node
-  //     const result: { messages: N8nMessage[] } = await response.json();
-
-  //     if (!result.messages) {
-  //       throw new Error("Invalid response structure from n8n");
-  //     }
-
-  //     // 7. Convert the simple n8n response back to the complex UI format
-  //     const newUiMessages = convertN8nMessagesToUiMessages(result.messages);
-
-  //     // 8. Set the *entire* chat history. This will automatically
-  //     //    replace the 'loadingMessage' with the real one.
-  //     setMessages(newUiMessages);
-
-  //   } catch (error) {
-  //     console.error("Error fetching from n8n:", error);
-      
-  //     // --- [NEW] --- 9. If we fail, remove the loader and add an error message
-  //     setMessages((prev) => [
-  //       // Filter out the loader
-  //       ...prev.filter(m => m.key !== LOADING_INDICATOR_KEY),
-  //       // Add an error message
-  //       {
-  //         key: nanoid(),
-  //         from: "assistant",
-  //         versions: [
-  //           {
-  //             id: nanoid(),
-  //             content: "Sorry, I had trouble connecting to the server.",
-  //           },
-  //         ],
-  //       },
-  //     ]);
-  //   } finally {
-  //     // 10. Reset the status
-  //     setStatus("ready");
-  //   }
-  // }, [messages]); // We depend on the 'messages' state
-
-  const handleSubmit = useCallback(async (message: PromptInputMessage) => {
-    
-    // --- [FIX START] ---
-    // 'message' can be undefined or one of many types.
-    // We must first check if 'message' exists, then
-    // safely check if 'text' or 'files' properties are *in* it.
-
-    // 1. Handle case where 'message' itself is undefined
-    if (!message) {
-      return;
-    }
-
-    // 2. Safely check for 'text' and 'files' properties using the 'in' operator
-    const hasText = ('text' in message && typeof message.text === 'string' && message.text.length > 0);
-    
-    // The type for files can be complex, so we check for 'files' and its length
-    const hasAttachments = ('files' in message && Array.isArray(message.files) && message.files.length > 0);
-    // --- [END FIX] ---
-
-    if (!(hasText || hasAttachments) || status !== 'ready') {
-      return;
-    }
-
-    // Also apply the 'in' check here for type safety
-    // if (hasAttachments && 'files' in message) {
-    //   toast.success("Files attached", {
-    //     description: `${message.files.length} file(s) attached to message`,
-    //   });
-    // }
-
-    // --- [FIX] ---
-    // 3. Safely get the content based on our checks
-    const messageContent = (hasText && 'text' in message) ? message.text : "Sent with attachments";
-    // --- [END FIX] ---
-
-    // 1. Create the new user message
-    const newUserMessage: UIMessageType = {
-      key: nanoid(),
-      from: "user",
-      versions: [
-        {
-          id: nanoid(),
-          content: messageContent, // Use the safe variable
-        },
-      ],
-    };
-
-    // 2. Create the message list to send to n8n
-    const n8nMessageList = [
-      ...convertUiMessagesToN8nMessages(messages),
-      {
-        id: newUserMessage.key,
-        role: "user",
-        content: messageContent, // Use the safe variable
-      },
-    ];
-
-    // --- [NEW] --- 3. Create a fake "loading" message
-    const loadingMessage: UIMessageType = {
-      key: LOADING_INDICATOR_KEY,
-      from: "assistant",
-      versions: [{ id: "loading", content: "..." }], // Content doesn't matter
-    };
-
-    // 4. Optimistically update the UI with *both* messages
-    setMessages((prev) => [...prev, newUserMessage, loadingMessage]);
-    setText("");
-    setStatus("submitted"); // Use 'submitted' to disable button
-
-    try {
-      // 5. Call the n8n Webhook
-      const response = await fetch(N8N_CHAT_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: n8nMessageList,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.statusText}`);
+      if (!(hasText || hasAttachments) || status !== "ready") {
+        return;
       }
 
-      // 6. Get the *simple* JSON response from n8n's 'Set' node
-      const result: { messages: N8nMessage[] } = await response.json();
-
-      if (!result.messages) {
-        throw new Error("Invalid response structure from n8n");
+      // Type-safe toast description
+      if (hasAttachments && "files" in message && Array.isArray(message.files)) {
+        toast.success("Files attached", {
+          description: `${message.files.length} file(s) attached to message`,
+        });
       }
+      // --- End type-safe checks ---
 
-      // 7. Convert the simple n8n response back to the complex UI format
-      const newUiMessages = convertN8nMessagesToUiMessages(result.messages);
+      const messageContent =
+        hasText && "text" in message ? message.text : "Sent with attachments";
 
-      // 8. Set the *entire* chat history. This will automatically
-      //    replace the 'loadingMessage' with the real one.
-      setMessages(newUiMessages);
+      // 1. Create the new user message
+      const newUserMessage: UIMessageType = {
+        key: nanoid(),
+        from: "user",
+        versions: [
+          {
+            id: nanoid(),
+            content: messageContent,
+          },
+        ],
+      };
 
-    } catch (error) {
-      console.error("Error fetching from n8n:", error);
-      
-      // --- [NEW] --- 9. If we fail, remove the loader and add an error message
-      setMessages((prev) => [
-        // Filter out the loader
-        ...prev.filter(m => m.key !== LOADING_INDICATOR_KEY),
-        // Add an error message
+      // 2. Create the message list to send to n8n
+      const n8nMessageList = [
+        ...convertUiMessagesToN8nMessages(messages),
         {
-          key: nanoid(),
-          from: "assistant",
-          versions: [
-            {
-              id: nanoid(),
-              content: "Sorry, I had trouble connecting to the server.",
-            },
-          ],
+          id: newUserMessage.key,
+          role: "user",
+          content: newUserMessage.versions[0].content,
         },
-      ]);
-    } finally {
-      // 10. Reset the status
-      setStatus("ready");
-    }
-  }, [messages, status]);
-  const handleSuggestionClick = useCallback((suggestion: string) => {
-    handleSubmit({ text: suggestion, files: [] });
-  }, [handleSubmit]);
+      ];
+
+      // 3. Create a fake "loading" message
+      const loadingMessage: UIMessageType = {
+        key: LOADING_INDICATOR_KEY,
+        from: "assistant",
+        versions: [{ id: "loading", content: "..." }], // Content doesn't matter
+      };
+
+      // 4. Optimistically update the UI with *both* messages
+      setMessages((prev) => [...prev, newUserMessage, loadingMessage]);
+      setText("");
+      setStatus("submitted"); // Use 'submitted' to disable button
+
+      // --- [THIS IS THE FIX] ---
+      // Check if the environment variable is missing *before* the try block.
+      if (!N8N_CHAT_API) {
+        console.error(
+          "FATAL ERROR: NEXT_PUBLIC_N8N_CHAT_API environment variable is not set.",
+        );
+        // Show an error message to the user
+        setMessages((prev) => [
+          ...prev.filter((m) => m.key !== LOADING_INDICATOR_KEY), // Remove loader
+          {
+            key: nanoid(),
+            from: "assistant",
+            versions: [
+              {
+                id: nanoid(),
+                // This is a user-friendly error
+                content:
+                  "Chat service is not configured. Please contact the site administrator.",
+              },
+            ],
+          },
+        ]);
+        setStatus("ready"); // Reset status
+        return; // Stop the function
+      }
+      // --- [END FIX] ---
+
+      try {
+        // 5. Call the n8n Webhook
+        // TypeScript is now happy because N8N_CHAT_API is guaranteed to be a string here.
+        const response = await fetch(N8N_CHAT_API , {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: n8nMessageList,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
+        // 6. Get the *simple* JSON response from n8n's 'Set' node
+        const result: { messages: N8nMessage[] } = await response.json();
+
+        if (!result.messages) {
+          throw new Error("Invalid response structure from n8n");
+        }
+
+        // 7. Convert the simple n8n response back to the complex UI format
+        const newUiMessages = convertN8nMessagesToUiMessages(result.messages);
+
+        // 8. Set the *entire* chat history.
+        setMessages(newUiMessages);
+      } catch (error) {
+        console.error("Error fetching from n8n:", error);
+        // 9. If we fail, remove the loader and add an error message
+        setMessages((prev) => [
+          ...prev.filter((m) => m.key !== LOADING_INDICATOR_KEY),
+          {
+            key: nanoid(),
+            from: "assistant",
+            versions: [
+              {
+                id: nanoid(),
+                content: "Sorry, I had trouble connecting to the server.",
+              },
+            ],
+          },
+        ]);
+      } finally {
+        // 10. Reset the status
+        setStatus("ready");
+      }
+    },
+    [messages, status], // Added status to dependency array
+  );
+
+  const handleSuggestionClick = useCallback(
+    (suggestion: string) => {
+      handleSubmit({ text: suggestion, files: [] });
+    },
+    [handleSubmit],
+  );
 
   return (
     <div className="relative flex size-full items-center divide-y overflow-hidden justify-center">
@@ -456,7 +430,7 @@ const Example = () => {
               </PromptInputBody>
               <PromptInputFooter>
                 <PromptInputSubmit
-                  disabled={status !== 'ready'}
+                  disabled={status !== "ready"}
                   status={status}
                 />
               </PromptInputFooter>
