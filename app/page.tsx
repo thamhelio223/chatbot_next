@@ -71,7 +71,7 @@ type UIMessageType = {
     content: string;
   }[];
   reasoning?: {
-    content: string;
+    content: any;
     duration: number;
   };
   tools?: {
