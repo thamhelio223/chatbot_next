@@ -1,50 +1,3 @@
-// "use client";
-
-// // --- [Imports: All your ai-elements components] ---
-// import {
-//   MessageBranch,
-//   MessageBranchContent,
-//   MessageBranchNext,
-//   MessageBranchPrevious,
-//   MessageBranchSelector,
-// } from "./components/ai-elements/message"; // Corrected path
-// import {
-//   Conversation,
-//   ConversationContent,
-//   ConversationScrollButton,
-// } from "./components/ai-elements/conversation"; // Corrected path
-// import { Message, MessageContent } from "./components/ai-elements/message"; // Corrected path
-// import {
-//   PromptInput,
-//   PromptInputActionAddAttachments,
-//   PromptInputActionMenu,
-//   PromptInputActionMenuContent,
-//   PromptInputActionMenuTrigger,
-//   PromptInputAttachment,
-//   PromptInputAttachments,
-//   PromptInputBody,
-//   PromptInputButton,
-//   PromptInputFooter,
-//   PromptInputHeader,
-//   type PromptInputMessage,
-//   PromptInputSubmit,
-//   PromptInputTextarea,
-//   PromptInputTools,
-// } from "./components/ai-elements/prompt-input"; // Corrected path
-// import {
-//   Reasoning,
-//   ReasoningContent,
-//   ReasoningTrigger,
-// } from "./components/ai-elements/reasoning"; // Corrected path
-// import { MessageResponse } from "./components/ai-elements/message"; // Corrected path
-// import {
-//   Source,
-//   Sources,
-//   SourcesContent,
-//   SourcesTrigger,
-// } from "./components/ai-elements/sources"; // Corrected path
-// import { Suggestion, Suggestions } from "./components/ai-elements/suggestion"; // Corrected path
-
 "use client";
 
 // --- [Imports: All your ai-elements components] ---
@@ -52,16 +5,15 @@ import {
   MessageBranch,
   MessageBranchContent,
   MessageBranchNext,
-  MessageBranchPage,
   MessageBranchPrevious,
   MessageBranchSelector,
-} from "@/components/ai-elements/message";
+} from "./components/ai-elements/message"; // Corrected path
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
-} from "@/components/ai-elements/conversation";
-import { Message, MessageContent } from "@/components/ai-elements/message";
+} from "./components/ai-elements/conversation"; // Corrected path
+import { Message, MessageContent } from "./components/ai-elements/message"; // Corrected path
 import {
   PromptInput,
   PromptInputActionAddAttachments,
@@ -78,20 +30,68 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
-} from "@/components/ai-elements/prompt-input";
+} from "./components/ai-elements/prompt-input"; // Corrected path
 import {
   Reasoning,
   ReasoningContent,
   ReasoningTrigger,
-} from "@/components/ai-elements/reasoning";
-import { MessageResponse } from "@/components/ai-elements/message";
+} from "./components/ai-elements/reasoning"; // Corrected path
+import { MessageResponse } from "./components/ai-elements/message"; // Corrected path
 import {
   Source,
   Sources,
   SourcesContent,
   SourcesTrigger,
-} from "@/components/ai-elements/sources";
-import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+} from "./components/ai-elements/sources"; // Corrected path
+import { Suggestion, Suggestions } from "./components/ai-elements/suggestion"; // Corrected path
+
+// "use client";
+
+// --- [Imports: All your ai-elements components] ---
+// import {
+//   MessageBranch,
+//   MessageBranchContent,
+//   MessageBranchNext,
+//   MessageBranchPage,
+//   MessageBranchPrevious,
+//   MessageBranchSelector,
+// } from "@/components/ai-elements/message";
+// import {
+//   Conversation,
+//   ConversationContent,
+//   ConversationScrollButton,
+// } from "@/components/ai-elements/conversation";
+// import { Message, MessageContent } from "@/components/ai-elements/message";
+// import {
+//   PromptInput,
+//   PromptInputActionAddAttachments,
+//   PromptInputActionMenu,
+//   PromptInputActionMenuContent,
+//   PromptInputActionMenuTrigger,
+//   PromptInputAttachment,
+//   PromptInputAttachments,
+//   PromptInputBody,
+//   PromptInputButton,
+//   PromptInputFooter,
+//   PromptInputHeader,
+//   type PromptInputMessage,
+//   PromptInputSubmit,
+//   PromptInputTextarea,
+//   PromptInputTools,
+// } from "@/components/ai-elements/prompt-input";
+// import {
+//   Reasoning,
+//   ReasoningContent,
+//   ReasoningTrigger,
+// } from "@/components/ai-elements/reasoning";
+// import { MessageResponse } from "@/components/ai-elements/message";
+// import {
+//   Source,
+//   Sources,
+//   SourcesContent,
+//   SourcesTrigger,
+// } from "@/components/ai-elements/sources";
+// import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 
 // --- [Imports: Real libraries] ---
 import type { ToolUIPart, FileUIPart } from "ai"; // Added FileUIPart
